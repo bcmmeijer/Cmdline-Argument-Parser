@@ -6,6 +6,9 @@
 #include <string_view>
 #include <sstream>
 
+template <typename T>
+concept Lexible = requires { std::constructible_from<std::ostream&>; };
+
 template <typename Charset, bool Throwing>
 class Argparserbase {
 private:
@@ -71,7 +74,7 @@ private:
 		})->second;
 	}
 
-	template <typename T>
+	template <Lexible T>
 	T lexical_cast(Strvw str) const {
 		Stream s;
 		T res;
