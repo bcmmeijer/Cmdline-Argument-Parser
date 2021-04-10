@@ -28,8 +28,8 @@ public:
 		for (int i = 1; i < argc; i++) {
 			CharPtr arg = argv[i];
 			switch (arg[0]) {
-			case '-': _args[arg] = String();	break;
-			default:  _args[argv[i - 1]] = arg;	break;
+			case indicator: _args[arg] = String();	break;
+			default:  	_args[argv[i - 1]] = arg;	break;
 			}
 		}
 	}
