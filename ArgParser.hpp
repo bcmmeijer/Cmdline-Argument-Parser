@@ -31,39 +31,31 @@ public:
 	~Argparserbase() = default;
 
 	Argparserbase(ThrowingArgparser& other) {
-		if constexpr (std::is_same_v<Char, ThrowingArgparser::Char>) {
+		if constexpr (std::is_same_v<Char, ThrowingArgparser::Char>)
 			this->_args = other.raw();
-		}
-		else {
+		else
 			this->_args = arg_to_warg(other.raw());
-		}
 	}
 
 	Argparserbase(ThrowingWargparser& other) {
-		if constexpr (std::is_same_v<Char, ThrowingWargparser::Char>) {
+		if constexpr (std::is_same_v<Char, ThrowingWargparser::Char>)
 			this->_args = other.raw();
-		}
-		else {
+		else
 			this->_args = warg_to_arg(other.raw());
-		}
 	}
 
 	Argparserbase(Argparser& other) {
-		if constexpr (std::is_same_v<Char, Argparser::Char>) {
+		if constexpr (std::is_same_v<Char, Argparser::Char>)
 			this->_args = other.raw();
-		}
-		else {
+		else
 			this->_args = arg_to_warg(other.raw());
-		}
 	}
 
 	Argparserbase(Wargparser& other) {
-		if constexpr (std::is_same_v<Char, Wargparser::Char>) {
+		if constexpr (std::is_same_v<Char, Wargparser::Char>)
 			this->_args = other.raw();
-		}
-		else {
+		else
 			this->_args = warg_to_arg(other.raw());
-		}
 	}
 
 public:
@@ -113,13 +105,13 @@ public:
 private:
 	bool hasimpl(Strvw str) const {
 		return std::find_if(_args.begin(), _args.end(), [&str](auto& elem) {
-			return elem.first == str;
+			return str == elem.first.data();
 		}) != _args.end();
 	}
 
 	const Strvw getimpl(Strvw str) const {
 		return std::find_if(_args.begin(), _args.end(), [&str](auto& elem) {
-			return elem.first == str;
+			return str == elem.first.data();
 		})->second;
 	}
 
@@ -141,6 +133,7 @@ private:
 			size_t out;
 
 			mbstowcs_s(&out, ret.data(), size, str.data(), size - 1);
+			ret.resize(out);
 			return ret;
 		};
 
@@ -159,6 +152,7 @@ private:
 			size_t out;
 
 			wcstombs_s(&out, ret.data(), size, str.data(), size - 1);
+			ret.resize(out);
 			return ret;
 		};
 
