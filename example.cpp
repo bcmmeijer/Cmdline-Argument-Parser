@@ -1,23 +1,27 @@
+// EXAMPLE
+// CLI ARGS: "-i 10 -o file.txt -q"
+
 #include "ArgParser.hpp"
+#include <iostream>
+int wmain(int argc, wchar_t** argv) {
 
-int main(int argc, char** argv) {
+	ThrowingWargparser parser;
+	parser.parse(argc, argv);
 
-	ArgParser::register_flag("-d", "--delay", "specifies delay", true, "10ms");
-	ArgParser::register_flag("-i", "--iterations", "Specifies iterations of loop", false, "20");
-
-	ArgParser::generate_help();
-	ArgParser::help();
+	auto count = parser.get<int>(L"-i");
+	auto name = parser.get(L"-o");
+	bool quiet = parser.has(L"-q");
 
 	try {
-
-		ArgParser::parse_args(argc, argv);
-
-		auto delay = ArgParser::get_arg<int>("-d");
-		auto iterations = ArgParser::get_arg<int>("-i");
+		auto doesnotexist = parser.get(L"--doesnotexist");	// throws
 	}
-	catch (const std::exception& e) {
-		std::cout << e.what() << std::endl;
+	catch (std::runtime_error& e) {
+		std::cout << e.what() << "\n";
 	}
+
+	std::wcout << L"count: " << count << L"\n";
+	std::wcout << L"name:  " << name << L"\n";
+	std::wcout << L"quiet: " << quiet << L"\n";
 
 	return 0;
 }
