@@ -60,19 +60,15 @@ public:
 
 private:
 	bool hasimpl(Strvw str) const {
-		for (auto& [k, _] : _args) {
-			if (k == str) return true;
-		}
-		return false;
+		return std::find_if(_args.begin(), _args.end(), [&str](auto& elem) {
+			return elem.first == str;
+		}) != _args.end();
 	}
 
 	const Strvw getimpl(Strvw str) const {
-		for (auto& [k, v] : _args) {
-			if (k == str) {
-				return v;
-			}
-		}
-		return Strvw();
+		return std::find_if(_args.begin(), _args.end(), [&str](auto& elem) {
+			return elem.first == str;
+		})->second;
 	}
 
 	template <typename T>
