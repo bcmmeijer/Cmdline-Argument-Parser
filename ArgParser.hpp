@@ -9,13 +9,11 @@
 template <typename T>
 concept Lexible = requires { std::constructible_from<std::ostream&>; };
 
-template <typename Charset, bool Throwing>
-class Argparserbase;
-
-using Argparser = Argparserbase<char, false>;
-using Wargparser = Argparserbase<wchar_t, false>;
-using ThrowingArgparser = Argparserbase<char, true>;
-using ThrowingWargparser = Argparserbase<wchar_t, true>;
+template <typename T>
+concept Parsible = requires (T t) {
+	{ T::Char };
+	{ t.raw() };
+};
 
 template <typename Charset, bool Throwing>
 class Argparserbase {
@@ -30,32 +28,17 @@ public:
 	Argparserbase() = default;
 	~Argparserbase() = default;
 
-	Argparserbase(ThrowingArgparser& other) {
-		if constexpr (std::is_same_v<Char, ThrowingArgparser::Char>)
-			this->_args = other.raw();
-		else
-			this->_args = arg_to_warg(other.raw());
+	Argparserbase(int argc, CharPtr* argv) {
+		parse(argc, argv);
 	}
 
-	Argparserbase(ThrowingWargparser& other) {
-		if constexpr (std::is_same_v<Char, ThrowingWargparser::Char>)
+	Argparserbase(Parsible auto& const other) {
+		if constexpr (std::is_same_v<Char, std::decay_t<decltype(other)>::Char>) {
 			this->_args = other.raw();
-		else
-			this->_args = warg_to_arg(other.raw());
-	}
-
-	Argparserbase(Argparser& other) {
-		if constexpr (std::is_same_v<Char, Argparser::Char>)
-			this->_args = other.raw();
-		else
-			this->_args = arg_to_warg(other.raw());
-	}
-
-	Argparserbase(Wargparser& other) {
-		if constexpr (std::is_same_v<Char, Wargparser::Char>)
-			this->_args = other.raw();
-		else
-			this->_args = warg_to_arg(other.raw());
+		}
+		else {
+			this->_args = convert_args(other.raw());
+		}
 	}
 
 public:
@@ -71,7 +54,7 @@ public:
 		}
 	}
 
-	const auto raw() const {
+	const auto& raw() const {
 		return _args;
 	}
 
@@ -91,8 +74,8 @@ public:
 		const std::array<Strvw, sizeof ... (args)> items = { args... };
 
 		for (Strvw item : items) {
-			if (hasimpl(item)) { 
-				return getimpl(item); 
+			if (hasimpl(item)) {
+				return getimpl(item);
 			};
 		}
 
@@ -126,7 +109,8 @@ private:
 		return res;
 	}
 
-	auto arg_to_warg(auto& args) {
+	// arg to warg
+	auto convert_args(const std::unordered_map<std::string, std::string>& args) const {
 		static auto convert = [](const std::string& str) -> std::wstring {
 			size_t size = str.size() + 1;
 			std::wstring ret(size, L'\0');
@@ -145,7 +129,8 @@ private:
 		return ret;
 	}
 
-	auto warg_to_arg(auto& wargs) {
+	// warg to arg
+	auto convert_args(const std::unordered_map<std::wstring, std::wstring>& wargs) const {
 		static auto convert = [](const std::wstring& str) -> std::string {
 			size_t size = str.size() + 1;
 			std::string ret(size, '\0');
@@ -167,3 +152,8 @@ private:
 private:
 	std::unordered_map<String, String> _args;
 };
+
+using Argparser = Argparserbase<char, false>;
+using Wargparser = Argparserbase<wchar_t, false>;
+using ThrowingArgparser = Argparserbase<char, true>;
+using ThrowingWargparser = Argparserbase<wchar_t, true>;
