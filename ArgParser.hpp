@@ -88,7 +88,7 @@ public:
 	template <typename T, typename ... Args>
 	auto get_or(T def, Args ... args) const requires std::convertible_to<std::common_type_t<Args...>, Strvw> {
 		Strvw item = get(args...);
-		if constexpr (std::is_convertible_v<T, Strvw>)
+		if constexpr (std::is_same_v<T, Char*> || std::is_same_v<T, const Char*>)
 			return item.empty() ? Strvw(def) : item;
 		else
 			return item.empty() ? def : lexical_cast<T>(item);
