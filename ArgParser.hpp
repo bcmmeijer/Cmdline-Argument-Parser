@@ -19,7 +19,6 @@ template <typename Charset, bool Throwing>
 class Argparserbase {
 public:
 	using Char = Charset;
-	using CharPtr = Char*;
 	using String = std::basic_string<Charset>;
 	using Strvw = std::basic_string_view<Charset>;
 	using Stream = std::basic_stringstream<Charset>;
@@ -28,7 +27,7 @@ public:
 	Argparserbase() = default;
 	~Argparserbase() = default;
 
-	Argparserbase(int argc, CharPtr* argv) {
+	Argparserbase(int argc, const Char** argv) {
 		parse(argc, argv);
 	}
 
@@ -42,11 +41,11 @@ public:
 	}
 
 public:
-	void parse(int argc, CharPtr* argv) {
+	void parse(int argc, const Char** argv) {
 		constexpr Char indicator = std::is_same_v<Char, char> ? '-' : L'-';
 
 		for (int i = 1; i < argc; i++) {
-			CharPtr arg = argv[i];
+			const Char* arg = argv[i];
 			switch (arg[0]) {
 			case indicator: _args[arg] = String();		break;
 			default:		_args[argv[i - 1]] = arg;	break;
@@ -66,6 +65,7 @@ public:
 	template <typename T, typename ... Args>
 	T get(Args ... args) const requires std::convertible_to<std::common_type_t<Args...>, Strvw> {
 		Strvw item = get(args...);
+		if (item.empty()) return T{};
 		return lexical_cast<T>(item);
 	}
 
@@ -83,6 +83,15 @@ public:
 			throw std::runtime_error("Argument not specified");
 		else
 			return Strvw();
+	}
+
+	template <typename T, typename ... Args>
+	auto get_or(T def, Args ... args) const requires std::convertible_to<std::common_type_t<Args...>, Strvw> {
+		Strvw item = get(args...);
+		if constexpr (std::is_convertible_v<T, Strvw>)
+			return item.empty() ? Strvw(def) : item;
+		else
+			return item.empty() ? def : lexical_cast<T>(item);
 	}
 
 private:
