@@ -87,7 +87,16 @@ public:
 
 	template <typename T, typename ... Args>
 	auto get_or(T def, Args ... args) const requires std::convertible_to<std::common_type_t<Args...>, Strvw> {
-		Strvw item = get(args...);
+		Strvw item;
+		const std::array<Strvw, sizeof ... (args)> items = { args... };
+
+		for (Strvw i : items) {
+			if (hasimpl(i)) {
+				item = getimpl(i);
+				break;
+			};
+		}
+
 		if constexpr (std::is_same_v<T, Char*> || std::is_same_v<T, const Char*>)
 			return item.empty() ? Strvw(def) : item;
 		else
