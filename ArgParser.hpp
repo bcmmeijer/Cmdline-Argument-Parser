@@ -135,7 +135,7 @@ private:
 			size_t out;
 
 			mbstowcs_s(&out, ret.data(), size, str.data(), size - 1);
-			ret.resize(out);
+			ret.resize(out - 1);
 			return ret;
 		};
 
